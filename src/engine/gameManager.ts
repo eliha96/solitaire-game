@@ -8,14 +8,16 @@ const STORAGE_KEY = 'solitaire_classic_saved_game_v1';
 const SETTINGS_KEY = 'solitaire_classic_settings_v1';
 
 export const DEFAULT_SETTINGS: GameSettings = {
-  drawCount: 1, // Draw 1 is standard and best for Grandma
-  scoringMode: 'relaxed', // Relaxed = no stressful penalties
+  drawCount: 1,
+  scoringMode: 'relaxed',
   soundEnabled: true,
   hapticsEnabled: true,
   cardBack: 'classic-blue',
-  largeFonts: true,
+  cardFaceTheme: 'classic',
+  largeFonts: false,
   autoCompletePrompt: true,
 };
+
 
 export function loadSavedSettings(): GameSettings {
   try {

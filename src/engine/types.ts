@@ -11,6 +11,7 @@ export interface Card {
 }
 
 export type CardBackStyle = 'classic-blue' | 'castle' | 'beach' | 'roses';
+export type CardFaceTheme = 'classic' | 'modern' | 'jumbo';
 
 export type CardLocation =
   | { pile: 'stock' }
@@ -34,13 +35,15 @@ export interface MoveRecord {
 
 export interface GameSettings {
   drawCount: 1 | 3;
-  scoringMode: 'relaxed' | 'standard'; // Relaxed has no penalties (Grandma friendly)
+  scoringMode: 'relaxed' | 'standard'; // Relaxed has no penalties
   soundEnabled: boolean;
   hapticsEnabled: boolean;
   cardBack: CardBackStyle;
+  cardFaceTheme: CardFaceTheme;
   largeFonts: boolean;
   autoCompletePrompt: boolean;
 }
+
 
 export interface GameState {
   stock: Card[];

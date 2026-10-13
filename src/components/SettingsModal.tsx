@@ -1,8 +1,7 @@
 import React from 'react';
-import type { GameSettings, CardBackStyle } from '../engine/types';
-
+import type { GameSettings, CardBackStyle, CardFaceTheme } from '../engine/types';
 import { CardBack } from './CardBack';
-import { X, Volume2, VolumeX, Smartphone, Eye, Award } from 'lucide-react';
+import { X, Volume2, VolumeX, Smartphone, Eye, Award, Palette } from 'lucide-react';
 
 interface SettingsModalProps {
   settings: GameSettings;
@@ -15,6 +14,12 @@ const CARD_BACK_OPTIONS: { id: CardBackStyle; label: string }[] = [
   { id: 'castle', label: 'טירה בלילה' },
   { id: 'beach', label: 'חוף ים' },
   { id: 'roses', label: 'שושנים' },
+];
+
+const CARD_FACE_OPTIONS: { id: CardFaceTheme; label: string; desc: string }[] = [
+  { id: 'classic', label: "וינטג' קלאסי", desc: 'איורי בני מלוכה מסורתיים של Windows' },
+  { id: 'modern', label: 'מודרני נקי', desc: 'דמויות מלכותיות בקו נקי' },
+  { id: 'jumbo', label: "ג'מבו ענק", desc: 'ספרות וסמלים מוגדלים לקריאות מקסימלית' },
 ];
 
 export const SettingsModal: React.FC<SettingsModalProps> = ({
@@ -42,9 +47,33 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
 
         {/* Content */}
         <div className="p-5 overflow-y-auto space-y-5">
+          {/* Card Face Theme Selection */}
+          <div>
+            <label className="flex items-center gap-1.5 text-sm font-semibold text-emerald-200 mb-2">
+              <Palette size={16} className="text-amber-400" />
+              עיצוב פני הקלפים (בני מלוכה)
+            </label>
+            <div className="grid grid-cols-3 gap-2">
+              {CARD_FACE_OPTIONS.map((opt) => (
+                <button
+                  key={opt.id}
+                  onClick={() => toggle('cardFaceTheme', opt.id)}
+                  className={`flex flex-col items-center justify-center p-2 rounded-xl border text-center transition-all ${
+                    settings.cardFaceTheme === opt.id
+                      ? 'border-amber-400 bg-emerald-700 text-white shadow-md font-bold'
+                      : 'border-emerald-800 bg-emerald-950/40 text-emerald-300 opacity-75 hover:opacity-100'
+                  }`}
+                >
+                  <span className="text-xs font-bold leading-tight">{opt.label}</span>
+                  <span className="text-[10px] opacity-75 mt-0.5 line-clamp-1">{opt.desc}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+
           {/* Card Back Selection */}
           <div>
-            <label className="block text-sm font-semibold text-emerald-200 mb-2.5">
+            <label className="block text-sm font-semibold text-emerald-200 mb-2">
               עיצוב גב הקלפים (נוסטלגיית Windows)
             </label>
             <div className="grid grid-cols-4 gap-2">
@@ -70,7 +99,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
           </div>
 
           {/* Draw Count (1 vs 3) */}
-          <div className="bg-[#0f281e] p-3.5 rounded-xl border border-emerald-700/50">
+          <div className="bg-[#0f281e] p-3 rounded-xl border border-emerald-700/50">
             <label className="block text-sm font-semibold text-emerald-200 mb-2">
               מספר קלפים בשליפה מהקופה
             </label>
@@ -83,7 +112,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                     : 'bg-emerald-950/50 border-emerald-800 text-emerald-300'
                 }`}
               >
-                קלף 1 (מומלץ לסבתא ⭐)
+                קלף 1 (קל וזורם)
               </button>
               <button
                 onClick={() => toggle('drawCount', 3)}
@@ -98,8 +127,61 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
             </div>
           </div>
 
+          {/* Scoring Mode Toggle (Standard vs Relaxed) */}
+          <div className="bg-[#0f281e] p-3 rounded-xl border border-emerald-700/50">
+            <label className="flex items-center gap-1.5 text-sm font-semibold text-emerald-200 mb-2">
+              <Award size={16} className="text-amber-400" />
+              שיטת ניקוד
+            </label>
+
+            <div className="grid grid-cols-2 gap-2">
+              <button
+                onClick={() => toggle('scoringMode', 'relaxed')}
+                className={`py-2 px-3 rounded-lg text-xs sm:text-sm font-bold border transition-all ${
+                  settings.scoringMode === 'relaxed'
+                    ? 'bg-emerald-600 border-emerald-400 text-white shadow'
+                    : 'bg-emerald-950/50 border-emerald-800 text-emerald-300'
+                }`}
+              >
+                מצב רגוע (ללא קנסות)
+              </button>
+              <button
+                onClick={() => toggle('scoringMode', 'standard')}
+                className={`py-2 px-3 rounded-lg text-xs sm:text-sm font-bold border transition-all ${
+                  settings.scoringMode === 'standard'
+                    ? 'bg-emerald-600 border-emerald-400 text-white shadow'
+                    : 'bg-emerald-950/50 border-emerald-800 text-emerald-300'
+                }`}
+              >
+                אתגרי (ניקוד Windows מלא)
+              </button>
+            </div>
+            <div className="text-[11px] text-emerald-300/80 mt-1.5 px-0.5">
+              {settings.scoringMode === 'standard'
+                ? 'במצב אתגרי: מנוכות 2 נקודות כל 10 שניות וישנם קנסות על סיבובי קופה.'
+                : 'במצב רגוע: אין הורדת נקודות על זמן או מעבר קופה.'}
+            </div>
+          </div>
+
           {/* Accessibility & Audio toggles */}
-          <div className="space-y-3">
+          <div className="space-y-2.5">
+            {/* Large Fonts */}
+            <div className="flex items-center justify-between p-3 rounded-xl bg-[#0f281e] border border-emerald-700/50">
+              <div className="flex items-center gap-2.5">
+                <Eye size={18} className="text-emerald-400" />
+                <div>
+                  <div className="text-sm font-medium">ספרות וסמלים גדולים</div>
+                  <div className="text-[11px] text-emerald-300">הגדלה משמעותית של האינדקס בכל קלף</div>
+                </div>
+              </div>
+              <input
+                type="checkbox"
+                checked={settings.largeFonts}
+                onChange={(e) => toggle('largeFonts', e.target.checked)}
+                className="w-5 h-5 accent-emerald-500 rounded cursor-pointer"
+              />
+            </div>
+
             {/* Sound */}
             <div className="flex items-center justify-between p-3 rounded-xl bg-[#0f281e] border border-emerald-700/50">
               <div className="flex items-center gap-2.5">
@@ -118,43 +200,12 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
             <div className="flex items-center justify-between p-3 rounded-xl bg-[#0f281e] border border-emerald-700/50">
               <div className="flex items-center gap-2.5">
                 <Smartphone size={18} className="text-emerald-400" />
-                <span className="text-sm font-medium">רטט עדין בטאץ' (לנייד)</span>
+                <span className="text-sm font-medium">משוב רטט עדין במגע</span>
               </div>
               <input
                 type="checkbox"
                 checked={settings.hapticsEnabled}
                 onChange={(e) => toggle('hapticsEnabled', e.target.checked)}
-                className="w-5 h-5 accent-emerald-500 rounded cursor-pointer"
-              />
-            </div>
-
-            {/* Large Fonts */}
-            <div className="flex items-center justify-between p-3 rounded-xl bg-[#0f281e] border border-emerald-700/50">
-              <div className="flex items-center gap-2.5">
-                <Eye size={18} className="text-emerald-400" />
-                <span className="text-sm font-medium">ספרות מוגדלות לקריאות נוחה</span>
-              </div>
-              <input
-                type="checkbox"
-                checked={settings.largeFonts}
-                onChange={(e) => toggle('largeFonts', e.target.checked)}
-                className="w-5 h-5 accent-emerald-500 rounded cursor-pointer"
-              />
-            </div>
-
-            {/* Scoring Mode */}
-            <div className="flex items-center justify-between p-3 rounded-xl bg-[#0f281e] border border-emerald-700/50">
-              <div className="flex items-center gap-2.5">
-                <Award size={18} className="text-emerald-400" />
-                <div>
-                  <div className="text-sm font-medium">מצב ניקוד רגוע</div>
-                  <div className="text-[11px] text-emerald-300">ללא קנסות נקודות על זמן או קופה</div>
-                </div>
-              </div>
-              <input
-                type="checkbox"
-                checked={settings.scoringMode === 'relaxed'}
-                onChange={(e) => toggle('scoringMode', e.target.checked ? 'relaxed' : 'standard')}
                 className="w-5 h-5 accent-emerald-500 rounded cursor-pointer"
               />
             </div>

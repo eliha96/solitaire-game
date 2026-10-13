@@ -27,16 +27,29 @@ export function App() {
     sounds.setMuted(!gameState.settings.soundEnabled);
   }, [gameState.settings.soundEnabled]);
 
-  // Game timer loop
+  // Game timer loop & Standard scoring time deduction
   useEffect(() => {
     if (!gameState.startTime || gameState.isWon) return;
 
     const interval = setInterval(() => {
       setGameState((prev) => {
         if (!prev.startTime || prev.isWon) return prev;
+        const newElapsed = prev.elapsedSeconds + 1;
+        let newScore = prev.score;
+
+        // In standard scoring mode: deduct 2 points every 10 seconds
+        if (
+          prev.settings.scoringMode === 'standard' &&
+          newElapsed % 10 === 0 &&
+          newElapsed > 0
+        ) {
+          newScore = Math.max(0, prev.score - 2);
+        }
+
         return {
           ...prev,
-          elapsedSeconds: prev.elapsedSeconds + 1,
+          elapsedSeconds: newElapsed,
+          score: newScore,
         };
       });
     }, 1000);
@@ -89,7 +102,6 @@ export function App() {
 
     if (targetCardId) {
       setHighlightedCardId(targetCardId);
-      // Auto clear highlight after 2.2 seconds
       setTimeout(() => {
         setHighlightedCardId((curr) => (curr === targetCardId ? null : curr));
       }, 2200);
@@ -113,6 +125,7 @@ export function App() {
         moves={gameState.movesCount}
         elapsedSeconds={gameState.elapsedSeconds}
         undoAvailable={gameState.history.length > 0 && !gameState.isWon}
+        settings={gameState.settings}
         onNewGame={handleNewGame}
         onUndo={handleUndo}
         onHint={handleHint}

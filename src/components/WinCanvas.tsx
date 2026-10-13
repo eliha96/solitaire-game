@@ -178,10 +178,11 @@ export const WinCanvas: React.FC<WinCanvasProps> = ({ foundations, onRestart }) 
       {/* Celebration Overlay Card */}
       <div className="relative z-10 bg-white/95 backdrop-blur-md rounded-2xl shadow-2xl p-6 max-w-xs w-11/12 text-center border-4 border-amber-400 animate-in fade-in zoom-in duration-300">
         <div className="text-4xl mb-2">🏆</div>
-        <h2 className="text-2xl font-black text-gray-900 mb-1">כל הכבוד סבתא!</h2>
+        <h2 className="text-2xl font-black text-gray-900 mb-1">כל הכבוד!</h2>
         <p className="text-base text-gray-700 font-medium mb-5">
           ניצחת את המשחק בהצלחה מדהימה!
         </p>
+
 
         <button
           onClick={onRestart}

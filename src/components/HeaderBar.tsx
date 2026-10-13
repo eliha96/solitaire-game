@@ -1,11 +1,13 @@
 import React from 'react';
 import { RotateCcw, Lightbulb, Settings as SettingsIcon, Play, Sparkles } from 'lucide-react';
+import type { GameSettings } from '../engine/types';
 
 interface HeaderBarProps {
   score: number;
   moves: number;
   elapsedSeconds: number;
   undoAvailable: boolean;
+  settings: GameSettings;
   onNewGame: () => void;
   onUndo: () => void;
   onHint: () => void;
@@ -17,6 +19,7 @@ export const HeaderBar: React.FC<HeaderBarProps> = ({
   moves,
   elapsedSeconds,
   undoAvailable,
+  settings,
   onNewGame,
   onUndo,
   onHint,
@@ -34,7 +37,10 @@ export const HeaderBar: React.FC<HeaderBarProps> = ({
       <div className="flex items-center justify-between text-xs sm:text-sm font-semibold text-emerald-200 px-1">
         <div className="flex items-center gap-3">
           <span>
-            ניקוד: <strong className="text-white text-sm sm:text-base">{score}</strong>
+            ניקוד: <strong className="text-white text-sm sm:text-base">{score}</strong>{' '}
+            <span className="text-[11px] text-emerald-300 font-normal">
+              ({settings.scoringMode === 'standard' ? 'אתגרי' : 'רגיל'})
+            </span>
           </span>
           <span>
             מהלכים: <strong className="text-white">{moves}</strong>
@@ -42,8 +48,8 @@ export const HeaderBar: React.FC<HeaderBarProps> = ({
         </div>
 
         <div className="flex items-center gap-2">
-          <span className="flex items-center gap-1 bg-emerald-950/60 px-2 py-0.5 rounded text-amber-300 border border-emerald-800">
-            <Sparkles size={12} /> משחק פתיר
+          <span className="flex items-center gap-1 bg-emerald-950/60 px-2 py-0.5 rounded text-amber-300 border border-emerald-800 text-[11px]">
+            <Sparkles size={12} /> פתיר ({settings.drawCount === 3 ? '3 קלפים' : 'קלף 1'})
           </span>
           <span className="font-mono text-emerald-100">{formatTime(elapsedSeconds)}</span>
         </div>
@@ -61,7 +67,7 @@ export const HeaderBar: React.FC<HeaderBarProps> = ({
             <span>חדש</span>
           </button>
 
-          {/* Undo (Large, prominent for Grandma!) */}
+          {/* Undo (Clear, prominent button) */}
           <button
             onClick={onUndo}
             disabled={!undoAvailable}
