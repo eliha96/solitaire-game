@@ -184,5 +184,35 @@ describe('Game Manager & Undo Execution', () => {
     game.tableau[0].push({ id: 'h-2', suit: 'hearts', rank: 2, color: 'red', isFaceUp: false });
     expect(canAutoComplete(game)).toBe(false);
   });
+
+  it('moves card from foundation back to tableau and supports undo', () => {
+    const game = createNewGame();
+    const fourHearts: Card = { id: 'h-4', suit: 'hearts', rank: 4, color: 'red', isFaceUp: true };
+    const fiveSpades: Card = { id: 's-5', suit: 'spades', rank: 5, color: 'black', isFaceUp: true };
+
+    game.foundations[0] = [
+      { id: 'h-1', suit: 'hearts', rank: 1, color: 'red', isFaceUp: true },
+      { id: 'h-2', suit: 'hearts', rank: 2, color: 'red', isFaceUp: true },
+      { id: 'h-3', suit: 'hearts', rank: 3, color: 'red', isFaceUp: true },
+      fourHearts,
+    ];
+    game.tableau[3] = [fiveSpades];
+
+    // Check tap-to-move detection from foundation
+    const dest = findBestMoveForTappedCard(game, fourHearts, 'foundation');
+    expect(dest).toEqual({ type: 'tableau', index: 3 });
+
+    // Execute move from foundation to tableau
+    const moved = executeMove(game, { pile: 'foundation', foundationIndex: 0 }, { type: 'tableau', index: 3 });
+    expect(moved.foundations[0]).toHaveLength(3);
+    expect(moved.tableau[3]).toHaveLength(2);
+    expect(moved.tableau[3][1].id).toBe('h-4');
+
+    // Undo move
+    const undone = undoMove(moved);
+    expect(undone.foundations[0]).toHaveLength(4);
+    expect(undone.foundations[0][3].id).toBe('h-4');
+    expect(undone.tableau[3]).toHaveLength(1);
+  });
 });
 

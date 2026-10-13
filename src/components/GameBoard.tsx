@@ -19,9 +19,10 @@ interface GameBoardProps {
 interface DragState {
   cards: Card[];
   source: {
-    pile: 'waste' | 'tableau';
+    pile: 'waste' | 'tableau' | 'foundation';
     colIndex?: number;
     cardIndex?: number;
+    foundationIndex?: number;
   };
   pointerId: number;
   startX: number;
@@ -56,9 +57,10 @@ export const GameBoard: React.FC<GameBoardProps> = ({
   highlightedCardId,
 }) => {
   const [selectedLocation, setSelectedLocation] = useState<{
-    pile: 'waste' | 'tableau';
+    pile: 'waste' | 'tableau' | 'foundation';
     colIndex?: number;
     cardIndex?: number;
+    foundationIndex?: number;
   } | null>(null);
 
   const [dragState, setDragState] = useState<DragState | null>(null);
@@ -107,6 +109,9 @@ export const GameBoard: React.FC<GameBoardProps> = ({
         // 1. Check Foundations (only single card can be dropped on foundation)
         if (dragState.cards.length === 1) {
           for (let fIdx = 0; fIdx < 4; fIdx++) {
+            if (dragState.source.pile === 'foundation' && dragState.source.foundationIndex === fIdx) {
+              continue;
+            }
             const fEl = foundationRefs.current[fIdx];
             if (fEl) {
               const rect = fEl.getBoundingClientRect();
@@ -181,6 +186,8 @@ export const GameBoard: React.FC<GameBoardProps> = ({
         // --- TAP EVENT (< 6px movement) ---
         if (dragState.source.pile === 'waste') {
           handleWasteCardClick(dragState.cards[0]);
+        } else if (dragState.source.pile === 'foundation' && dragState.source.foundationIndex !== undefined) {
+          handleFoundationClick(dragState.source.foundationIndex);
         } else if (
           dragState.source.pile === 'tableau' &&
           dragState.source.colIndex !== undefined &&
@@ -320,7 +327,7 @@ export const GameBoard: React.FC<GameBoardProps> = ({
     const rect = targetEl.getBoundingClientRect();
 
     let cardsToDrag: Card[] = [];
-    if (source.pile === 'waste') {
+    if (source.pile === 'waste' || source.pile === 'foundation') {
       cardsToDrag = [card];
     } else if (source.pile === 'tableau' && source.colIndex !== undefined && source.cardIndex !== undefined) {
       cardsToDrag = state.tableau[source.colIndex].slice(source.cardIndex);
@@ -390,6 +397,29 @@ export const GameBoard: React.FC<GameBoardProps> = ({
           return;
         }
       } else if (
+        selectedLocation.pile === 'foundation' &&
+        selectedLocation.foundationIndex !== undefined
+      ) {
+        const fPile = state.foundations[selectedLocation.foundationIndex];
+        if (fPile.length > 0) {
+          const movingCard = fPile[fPile.length - 1];
+          if (canPlaceOnTableau(card, movingCard)) {
+            sounds.playCardPlace();
+            sounds.triggerHaptic(15);
+            const next = executeMove(
+              state,
+              {
+                pile: 'foundation',
+                foundationIndex: selectedLocation.foundationIndex,
+              },
+              { type: 'tableau', index: colIndex }
+            );
+            setSelectedLocation(null);
+            onStateChange(next);
+            return;
+          }
+        }
+      } else if (
         selectedLocation.pile === 'tableau' &&
         selectedLocation.colIndex !== undefined &&
         selectedLocation.cardIndex !== undefined &&
@@ -451,6 +481,28 @@ export const GameBoard: React.FC<GameBoardProps> = ({
         onStateChange(next);
       }
     } else if (
+      selectedLocation.pile === 'foundation' &&
+      selectedLocation.foundationIndex !== undefined
+    ) {
+      const fPile = state.foundations[selectedLocation.foundationIndex];
+      if (fPile.length > 0) {
+        const movingCard = fPile[fPile.length - 1];
+        if (canPlaceOnTableau(null, movingCard)) {
+          sounds.playCardPlace();
+          sounds.triggerHaptic(15);
+          const next = executeMove(
+            state,
+            {
+              pile: 'foundation',
+              foundationIndex: selectedLocation.foundationIndex,
+            },
+            { type: 'tableau', index: colIndex }
+          );
+          setSelectedLocation(null);
+          onStateChange(next);
+        }
+      }
+    } else if (
       selectedLocation.pile === 'tableau' &&
       selectedLocation.colIndex !== undefined &&
       selectedLocation.cardIndex !== undefined &&
@@ -478,44 +530,79 @@ export const GameBoard: React.FC<GameBoardProps> = ({
 
   // Tap handler for Foundation pile
   const handleFoundationClick = (foundationIndex: number) => {
-    if (!selectedLocation) return;
     const fPile = state.foundations[foundationIndex];
 
-    if (selectedLocation.pile === 'waste' && state.waste.length > 0) {
-      const wasteCard = state.waste[state.waste.length - 1];
-      if (canPlaceOnFoundation(fPile, wasteCard)) {
-        sounds.playCardPlace();
-        sounds.triggerHaptic(15);
-        const next = executeMove(state, { pile: 'waste' }, {
-          type: 'foundation',
-          index: foundationIndex,
-        });
-        setSelectedLocation(null);
-        onStateChange(next);
-      }
-    } else if (
-      selectedLocation.pile === 'tableau' &&
-      selectedLocation.colIndex !== undefined &&
-      selectedLocation.cardIndex !== undefined
-    ) {
-      const sourceCol = state.tableau[selectedLocation.colIndex];
-      if (selectedLocation.cardIndex === sourceCol.length - 1) {
-        const movingCard = sourceCol[selectedLocation.cardIndex];
-        if (canPlaceOnFoundation(fPile, movingCard)) {
+    if (selectedLocation) {
+      if (selectedLocation.pile === 'waste' && state.waste.length > 0) {
+        const wasteCard = state.waste[state.waste.length - 1];
+        if (canPlaceOnFoundation(fPile, wasteCard)) {
           sounds.playCardPlace();
           sounds.triggerHaptic(15);
-          const next = executeMove(
-            state,
-            {
-              pile: 'tableau',
-              colIndex: selectedLocation.colIndex,
-              cardIndex: selectedLocation.cardIndex,
-            },
-            { type: 'foundation', index: foundationIndex }
-          );
+          const next = executeMove(state, { pile: 'waste' }, {
+            type: 'foundation',
+            index: foundationIndex,
+          });
           setSelectedLocation(null);
           onStateChange(next);
+          return;
         }
+      } else if (
+        selectedLocation.pile === 'tableau' &&
+        selectedLocation.colIndex !== undefined &&
+        selectedLocation.cardIndex !== undefined
+      ) {
+        const sourceCol = state.tableau[selectedLocation.colIndex];
+        if (selectedLocation.cardIndex === sourceCol.length - 1) {
+          const movingCard = sourceCol[selectedLocation.cardIndex];
+          if (canPlaceOnFoundation(fPile, movingCard)) {
+            sounds.playCardPlace();
+            sounds.triggerHaptic(15);
+            const next = executeMove(
+              state,
+              {
+                pile: 'tableau',
+                colIndex: selectedLocation.colIndex,
+                cardIndex: selectedLocation.cardIndex,
+              },
+              { type: 'foundation', index: foundationIndex }
+            );
+            setSelectedLocation(null);
+            onStateChange(next);
+            return;
+          }
+        }
+      } else if (
+        selectedLocation.pile === 'foundation' &&
+        selectedLocation.foundationIndex === foundationIndex
+      ) {
+        // Toggle selection off if clicking the same foundation
+        setSelectedLocation(null);
+        return;
+      }
+    }
+
+    // No prior card selected to place here: tap to move card back to tableau!
+    if (fPile.length > 0) {
+      const topCard = fPile[fPile.length - 1];
+      const destination = findBestMoveForTappedCard(state, topCard, 'foundation');
+      if (destination && destination.type === 'tableau') {
+        sounds.playCardPlace();
+        sounds.triggerHaptic(15);
+        const next = executeMove(
+          state,
+          { pile: 'foundation', foundationIndex },
+          destination
+        );
+        setSelectedLocation(null);
+        onStateChange(next);
+      } else {
+        // Toggle selection so user can tap an empty column or tableau column manually
+        setSelectedLocation((prev) =>
+          prev?.pile === 'foundation' && prev.foundationIndex === foundationIndex
+            ? null
+            : { pile: 'foundation', foundationIndex }
+        );
+        sounds.triggerHaptic(10);
       }
     }
   };
@@ -631,6 +718,23 @@ export const GameBoard: React.FC<GameBoardProps> = ({
                   card={topCard}
                   cardBack={state.settings.cardBack}
                   cardFaceTheme={state.settings.cardFaceTheme}
+                  isHighlighted={highlightedCardId === topCard.id}
+                  isSelected={
+                    selectedLocation?.pile === 'foundation' &&
+                    selectedLocation.foundationIndex === fIdx
+                  }
+                  isDragging={
+                    Boolean(dragState?.isDragging) &&
+                    dragState?.source.pile === 'foundation' &&
+                    dragState?.source.foundationIndex === fIdx
+                  }
+                  onPointerDown={(e) =>
+                    startDrag(
+                      e,
+                      { pile: 'foundation', foundationIndex: fIdx },
+                      topCard
+                    )
+                  }
                 />
               ) : (
                 <div className="w-full h-full card-slot flex items-center justify-center text-white/30 text-xl font-bold">

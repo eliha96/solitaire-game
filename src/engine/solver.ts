@@ -23,7 +23,7 @@ export interface HintMove {
 export function findBestMoveForTappedCard(
   gameState: GameState,
   card: Card,
-  sourcePile: 'waste' | 'tableau',
+  sourcePile: 'waste' | 'tableau' | 'foundation',
   sourceColIndex?: number,
   sourceCardIndex?: number
 ): MoveDestination | null {
