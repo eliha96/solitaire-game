@@ -11,7 +11,8 @@ export interface Card {
 }
 
 export type CardBackStyle = 'classic-blue' | 'castle' | 'beach' | 'roses';
-export type CardFaceTheme = 'classic' | 'modern' | 'jumbo';
+export type CardFaceTheme = 'standard' | 'windows95' | 'victorian' | 'modern' | 'jumbo';
+
 
 export type CardLocation =
   | { pile: 'stock' }

@@ -16,10 +16,12 @@ const CARD_BACK_OPTIONS: { id: CardBackStyle; label: string }[] = [
   { id: 'roses', label: 'שושנים' },
 ];
 
-const CARD_FACE_OPTIONS: { id: CardFaceTheme; label: string; desc: string }[] = [
-  { id: 'classic', label: "וינטג' קלאסי", desc: 'איורי בני מלוכה מסורתיים של Windows' },
+const CARD_FACE_OPTIONS: { id: CardFaceTheme; label: string; desc: string; badge?: string }[] = [
+  { id: 'standard', label: 'קלאסי תקני', desc: 'איורים מסורתיים מלאים (Bicycle)', badge: 'מומלץ' },
+  { id: 'windows95', label: 'Windows 95', desc: 'הפיקסל-ארט המקורי מ-cards.dll', badge: 'נוסטלגי' },
+  { id: 'victorian', label: 'ויקטוריאני', desc: 'עיצוב Goodall & Son מהמאה ה-19' },
   { id: 'modern', label: 'מודרני נקי', desc: 'דמויות מלכותיות בקו נקי' },
-  { id: 'jumbo', label: "ג'מבו ענק", desc: 'ספרות וסמלים מוגדלים לקריאות מקסימלית' },
+  { id: 'jumbo', label: "ג'מבו ענק", desc: 'ספרות וסמלים ענקיים לקריאות' },
 ];
 
 export const SettingsModal: React.FC<SettingsModalProps> = ({
@@ -49,21 +51,28 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
         <div className="p-5 overflow-y-auto space-y-5">
           {/* Card Face Theme Selection */}
           <div>
-            <label className="flex items-center gap-1.5 text-sm font-semibold text-emerald-200 mb-2">
-              <Palette size={16} className="text-amber-400" />
-              עיצוב פני הקלפים (בני מלוכה)
+            <label className="flex items-center justify-between text-sm font-semibold text-emerald-200 mb-2">
+              <span className="flex items-center gap-1.5">
+                <Palette size={16} className="text-amber-400" />
+                חפיסת קלפים (5 עיצובים לבחירה)
+              </span>
             </label>
-            <div className="grid grid-cols-3 gap-2">
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
               {CARD_FACE_OPTIONS.map((opt) => (
                 <button
                   key={opt.id}
                   onClick={() => toggle('cardFaceTheme', opt.id)}
-                  className={`flex flex-col items-center justify-center p-2 rounded-xl border text-center transition-all ${
+                  className={`relative flex flex-col items-center justify-center p-2 rounded-xl border text-center transition-all ${
                     settings.cardFaceTheme === opt.id
-                      ? 'border-amber-400 bg-emerald-700 text-white shadow-md font-bold'
+                      ? 'border-amber-400 bg-emerald-700 text-white shadow-md font-bold scale-102'
                       : 'border-emerald-800 bg-emerald-950/40 text-emerald-300 opacity-75 hover:opacity-100'
                   }`}
                 >
+                  {opt.badge && (
+                    <span className="absolute -top-1.5 -right-1 bg-amber-500 text-gray-950 text-[9px] font-black px-1.5 py-0.2 rounded-full shadow">
+                      {opt.badge}
+                    </span>
+                  )}
                   <span className="text-xs font-bold leading-tight">{opt.label}</span>
                   <span className="text-[10px] opacity-75 mt-0.5 line-clamp-1">{opt.desc}</span>
                 </button>
@@ -76,6 +85,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
             <label className="block text-sm font-semibold text-emerald-200 mb-2">
               עיצוב גב הקלפים (נוסטלגיית Windows)
             </label>
+
             <div className="grid grid-cols-4 gap-2">
               {CARD_BACK_OPTIONS.map((opt) => (
                 <button

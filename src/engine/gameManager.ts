@@ -13,10 +13,11 @@ export const DEFAULT_SETTINGS: GameSettings = {
   soundEnabled: true,
   hapticsEnabled: true,
   cardBack: 'classic-blue',
-  cardFaceTheme: 'classic',
+  cardFaceTheme: 'standard',
   largeFonts: false,
   autoCompletePrompt: true,
 };
+
 
 
 export function loadSavedSettings(): GameSettings {
