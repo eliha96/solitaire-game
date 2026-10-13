@@ -298,7 +298,7 @@ export const GameBoard: React.FC<GameBoardProps> = ({
       setFlyingCard(null);
       setIsFlyingGliding(false);
       onStateChange(next);
-    }, 220); // 220ms flight duration
+    }, 80); // 80ms flight duration for rapid, snappy finish
 
     return () => clearTimeout(timer);
   }, [flyingCard, isFlyingGliding, state, onStateChange]);
@@ -559,12 +559,16 @@ export const GameBoard: React.FC<GameBoardProps> = ({
           )}
         </div>
 
-        {/* Col 1 & 2: Waste Pile (Fanned when Draw 3 is active!) */}
-        <div className="col-span-2 relative aspect-[5/7] w-full">
-          {visibleWasteCards.length > 0 ? (
+        {/* Col 1: Waste Pile */}
+        <div className="col-span-1 relative aspect-[5/7] w-full">
+          {/* Base Marked Slot: ALWAYS rendered in Col 1 so the spot is permanently marked directly next to Stock */}
+          <div className="absolute inset-0 card-slot opacity-30 pointer-events-none" />
+
+          {visibleWasteCards.length > 0 &&
             visibleWasteCards.map((card, idx) => {
               const isTop = idx === visibleWasteCards.length - 1;
-              const leftOffset = state.settings.drawCount === 3 ? idx * 16 : 0;
+              // In Draw 3, fan successive cards towards the spacer column (Col 2, to the left)
+              const fanOffset = state.settings.drawCount === 3 ? idx * -14 : 0;
               const isBeingDragged =
                 dragState?.isDragging &&
                 dragState.source.pile === 'waste' &&
@@ -576,8 +580,10 @@ export const GameBoard: React.FC<GameBoardProps> = ({
                   style={{
                     position: 'absolute',
                     top: 0,
-                    left: `${leftOffset}px`,
-                    width: 'calc(50% - 2px)',
+                    right: 0,
+                    width: '100%',
+                    height: '100%',
+                    transform: `translateX(${fanOffset}px)`,
                     zIndex: idx + 1,
                   }}
                 >
@@ -597,11 +603,11 @@ export const GameBoard: React.FC<GameBoardProps> = ({
                   />
                 </div>
               );
-            })
-          ) : (
-            <div className="w-1/2 aspect-[5/7] card-slot opacity-30" />
-          )}
+            })}
         </div>
+
+        {/* Col 2: Empty Spacer Column between Waste and Foundations */}
+        <div className="col-span-1 pointer-events-none" />
 
         {/* Col 3-6: 4 Foundations */}
         {[0, 1, 2, 3].map((fIdx) => {
@@ -774,7 +780,7 @@ export const GameBoard: React.FC<GameBoardProps> = ({
             height: `${flyingCard.height}px`,
             zIndex: 9998,
             pointerEvents: 'none',
-            transition: isFlyingGliding ? 'all 0.22s cubic-bezier(0.25, 1, 0.5, 1)' : 'none',
+            transition: isFlyingGliding ? 'all 0.08s cubic-bezier(0.2, 0.9, 0.3, 1)' : 'none',
             filter: 'drop-shadow(0 10px 20px rgba(0,0,0,0.4))',
           }}
         >
