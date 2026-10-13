@@ -1,7 +1,7 @@
 import React from 'react';
 import type { GameSettings, CardBackStyle, CardFaceTheme } from '../engine/types';
 import { CardBack } from './CardBack';
-import { X, Volume2, VolumeX, Smartphone, Eye, Award, Palette } from 'lucide-react';
+import { X, Volume2, VolumeX, Smartphone, Award, Palette } from 'lucide-react';
 
 interface SettingsModalProps {
   settings: GameSettings;
@@ -11,17 +11,18 @@ interface SettingsModalProps {
 
 const CARD_BACK_OPTIONS: { id: CardBackStyle; label: string }[] = [
   { id: 'classic-blue', label: 'כחול קלאסי' },
-  { id: 'castle', label: 'טירה בלילה' },
-  { id: 'beach', label: 'חוף ים' },
-  { id: 'roses', label: 'שושנים' },
+  { id: 'beach', label: 'חוף ים ואי' },
+  { id: 'castle', label: 'טירת רפאים' },
+  { id: 'robot', label: 'יד רובוט' },
+  { id: 'roses', label: 'ורדים' },
+  { id: 'fish', label: 'דגים במצולות' },
+  { id: 'shells', label: 'צדפים' },
+  { id: 'classic-red', label: 'אדום קלאסי' },
 ];
 
 const CARD_FACE_OPTIONS: { id: CardFaceTheme; label: string; desc: string; badge?: string }[] = [
-  { id: 'standard', label: 'קלאסי תקני', desc: 'איורים מסורתיים מלאים (Bicycle)', badge: 'מומלץ' },
-  { id: 'windows95', label: 'Windows 95', desc: 'הפיקסל-ארט המקורי מ-cards.dll', badge: 'נוסטלגי' },
-  { id: 'victorian', label: 'ויקטוריאני', desc: 'עיצוב Goodall & Son מהמאה ה-19' },
-  { id: 'modern', label: 'מודרני נקי', desc: 'דמויות מלכותיות בקו נקי' },
-  { id: 'jumbo', label: "ג'מבו ענק", desc: 'ספרות וסמלים ענקיים לקריאות' },
+  { id: 'windows95', label: 'Windows 95', desc: 'הפיקסל-ארט המקורי מ-cards.dll', badge: 'ברירת מחדל' },
+  { id: 'standard', label: 'קלאסי תקני', desc: 'איורים וקטוריים מלאים (Bicycle)' },
 ];
 
 export const SettingsModal: React.FC<SettingsModalProps> = ({
@@ -54,27 +55,27 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
             <label className="flex items-center justify-between text-sm font-semibold text-emerald-200 mb-2">
               <span className="flex items-center gap-1.5">
                 <Palette size={16} className="text-amber-400" />
-                חפיסת קלפים (5 עיצובים לבחירה)
+                חפיסת קלפים
               </span>
             </label>
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+            <div className="grid grid-cols-2 gap-2">
               {CARD_FACE_OPTIONS.map((opt) => (
                 <button
                   key={opt.id}
                   onClick={() => toggle('cardFaceTheme', opt.id)}
-                  className={`relative flex flex-col items-center justify-center p-2 rounded-xl border text-center transition-all ${
+                  className={`relative flex flex-col items-center justify-center p-3 rounded-xl border text-center transition-all ${
                     settings.cardFaceTheme === opt.id
                       ? 'border-amber-400 bg-emerald-700 text-white shadow-md font-bold scale-102'
                       : 'border-emerald-800 bg-emerald-950/40 text-emerald-300 opacity-75 hover:opacity-100'
                   }`}
                 >
                   {opt.badge && (
-                    <span className="absolute -top-1.5 -right-1 bg-amber-500 text-gray-950 text-[9px] font-black px-1.5 py-0.2 rounded-full shadow">
+                    <span className="absolute -top-1.5 -right-1 bg-amber-500 text-gray-950 text-[9px] font-black px-1.5 py-0.5 rounded-full shadow">
                       {opt.badge}
                     </span>
                   )}
-                  <span className="text-xs font-bold leading-tight">{opt.label}</span>
-                  <span className="text-[10px] opacity-75 mt-0.5 line-clamp-1">{opt.desc}</span>
+                  <span className="text-sm font-bold leading-tight">{opt.label}</span>
+                  <span className="text-[11px] opacity-80 mt-1 line-clamp-2">{opt.desc}</span>
                 </button>
               ))}
             </div>
@@ -83,7 +84,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
           {/* Card Back Selection */}
           <div>
             <label className="block text-sm font-semibold text-emerald-200 mb-2">
-              עיצוב גב הקלפים (נוסטלגיית Windows)
+              עיצוב גב הקלפים (נוסטלגיית Windows מקורית)
             </label>
 
             <div className="grid grid-cols-4 gap-2">
@@ -100,7 +101,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                   <div className="w-12 h-16 rounded overflow-hidden shadow">
                     <CardBack styleName={opt.id} />
                   </div>
-                  <span className="text-[11px] font-medium mt-1 text-center truncate w-full">
+                  <span className="text-[10px] font-medium mt-1 text-center truncate w-full">
                     {opt.label}
                   </span>
                 </button>
@@ -173,25 +174,8 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
             </div>
           </div>
 
-          {/* Accessibility & Audio toggles */}
+          {/* Audio & Haptics toggles */}
           <div className="space-y-2.5">
-            {/* Large Fonts */}
-            <div className="flex items-center justify-between p-3 rounded-xl bg-[#0f281e] border border-emerald-700/50">
-              <div className="flex items-center gap-2.5">
-                <Eye size={18} className="text-emerald-400" />
-                <div>
-                  <div className="text-sm font-medium">ספרות וסמלים גדולים</div>
-                  <div className="text-[11px] text-emerald-300">הגדלה משמעותית של האינדקס בכל קלף</div>
-                </div>
-              </div>
-              <input
-                type="checkbox"
-                checked={settings.largeFonts}
-                onChange={(e) => toggle('largeFonts', e.target.checked)}
-                className="w-5 h-5 accent-emerald-500 rounded cursor-pointer"
-              />
-            </div>
-
             {/* Sound */}
             <div className="flex items-center justify-between p-3 rounded-xl bg-[#0f281e] border border-emerald-700/50">
               <div className="flex items-center gap-2.5">

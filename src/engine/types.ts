@@ -10,8 +10,17 @@ export interface Card {
   isFaceUp: boolean;
 }
 
-export type CardBackStyle = 'classic-blue' | 'castle' | 'beach' | 'roses';
-export type CardFaceTheme = 'standard' | 'windows95' | 'victorian' | 'modern' | 'jumbo';
+export type CardBackStyle =
+  | 'classic-blue'
+  | 'beach'
+  | 'castle'
+  | 'robot'
+  | 'roses'
+  | 'fish'
+  | 'shells'
+  | 'classic-red';
+
+export type CardFaceTheme = 'windows95' | 'standard';
 
 
 export type CardLocation =
@@ -41,7 +50,6 @@ export interface GameSettings {
   hapticsEnabled: boolean;
   cardBack: CardBackStyle;
   cardFaceTheme: CardFaceTheme;
-  largeFonts: boolean;
   autoCompletePrompt: boolean;
 }
 

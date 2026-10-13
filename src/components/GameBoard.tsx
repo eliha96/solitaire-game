@@ -591,7 +591,6 @@ export const GameBoard: React.FC<GameBoardProps> = ({
                     card={card}
                     cardBack={state.settings.cardBack}
                     cardFaceTheme={state.settings.cardFaceTheme}
-                    largeFonts={state.settings.largeFonts}
                     isHighlighted={highlightedCardId === card.id}
                     isSelected={selectedLocation?.pile === 'waste' && isTop}
                     isDragging={isBeingDragged}
@@ -632,7 +631,6 @@ export const GameBoard: React.FC<GameBoardProps> = ({
                   card={topCard}
                   cardBack={state.settings.cardBack}
                   cardFaceTheme={state.settings.cardFaceTheme}
-                  largeFonts={state.settings.largeFonts}
                 />
               ) : (
                 <div className="w-full h-full card-slot flex items-center justify-center text-white/30 text-xl font-bold">
@@ -710,7 +708,6 @@ export const GameBoard: React.FC<GameBoardProps> = ({
                       card={card}
                       cardBack={state.settings.cardBack}
                       cardFaceTheme={state.settings.cardFaceTheme}
-                      largeFonts={state.settings.largeFonts}
                       isHighlighted={isHighlighted}
                       isSelected={isSelected}
                       isDragging={isBeingDragged}
@@ -762,7 +759,6 @@ export const GameBoard: React.FC<GameBoardProps> = ({
                 card={c}
                 cardBack={state.settings.cardBack}
                 cardFaceTheme={state.settings.cardFaceTheme}
-                largeFonts={state.settings.largeFonts}
               />
             </div>
           ))}
@@ -788,7 +784,6 @@ export const GameBoard: React.FC<GameBoardProps> = ({
             card={flyingCard.card}
             cardBack={state.settings.cardBack}
             cardFaceTheme={state.settings.cardFaceTheme}
-            largeFonts={state.settings.largeFonts}
           />
         </div>
       )}

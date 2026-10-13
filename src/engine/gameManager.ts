@@ -13,8 +13,7 @@ export const DEFAULT_SETTINGS: GameSettings = {
   soundEnabled: true,
   hapticsEnabled: true,
   cardBack: 'classic-blue',
-  cardFaceTheme: 'standard',
-  largeFonts: false,
+  cardFaceTheme: 'windows95',
   autoCompletePrompt: true,
 };
 
@@ -25,7 +24,12 @@ export function loadSavedSettings(): GameSettings {
     if (typeof localStorage !== 'undefined') {
       const raw = localStorage.getItem(SETTINGS_KEY);
       if (raw) {
-        return { ...DEFAULT_SETTINGS, ...JSON.parse(raw) };
+        const parsed = JSON.parse(raw);
+        // Sanitize theme to only windows95 or standard
+        if (parsed.cardFaceTheme !== 'windows95' && parsed.cardFaceTheme !== 'standard') {
+          parsed.cardFaceTheme = 'windows95';
+        }
+        return { ...DEFAULT_SETTINGS, ...parsed };
       }
     }
   } catch (e) {
