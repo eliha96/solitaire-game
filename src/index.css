@@ -1,0 +1,45 @@
+@import "tailwindcss";
+
+:root {
+  --felt-green: #076324;
+  --felt-dark: #044317;
+  --card-shadow: 0 4px 8px rgba(0, 0, 0, 0.35);
+  --card-lift: 0 12px 24px rgba(0, 0, 0, 0.45);
+}
+
+html, body, #root {
+  height: 100%;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  background-color: var(--felt-green);
+  touch-action: none;
+}
+
+/* Green felt radial texture */
+.green-felt {
+  background: radial-gradient(circle at 50% 30%, #0a792c 0%, #076324 60%, #044317 100%);
+}
+
+/* Smooth card transitions for tap-to-move */
+.card-transition {
+  transition: transform 0.18s ease-out, box-shadow 0.18s ease-out;
+}
+
+/* Card slot outline */
+.card-slot {
+  border: 2px dashed rgba(255, 255, 255, 0.25);
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.12);
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+/* Prevent accidental text selection or callouts on mobile touch */
+* {
+  -webkit-tap-highlight-color: transparent;
+}

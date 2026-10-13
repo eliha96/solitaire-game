@@ -1,0 +1,18 @@
+{
+  "name": "סוליטר קלאסי",
+  "short_name": "סוליטר",
+  "description": "משחק סוליטר קלאסי נטול פרסומות, מותאם במיוחד לנייד",
+  "start_url": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#076324",
+  "theme_color": "#076324",
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "192x192 512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
