@@ -67,8 +67,34 @@ export const GameBoard: React.FC<GameBoardProps> = ({
   const [flyingCard, setFlyingCard] = useState<FlyingCardInfo | null>(null);
   const [isFlyingGliding, setIsFlyingGliding] = useState(false);
 
+  const boardRef = useRef<HTMLElement | null>(null);
+  const [boardHeight, setBoardHeight] = useState<number>(600);
+  const [cardWidth, setCardWidth] = useState<number>(50);
+
   const foundationRefs = useRef<(HTMLDivElement | null)[]>([]);
   const tableauRefs = useRef<(HTMLDivElement | null)[]>([]);
+
+  // Track responsive screen dimensions to fill height dynamically
+  useEffect(() => {
+    const updateDims = () => {
+      if (boardRef.current) {
+        const h = boardRef.current.clientHeight;
+        if (h > 100) setBoardHeight(h);
+      }
+      if (foundationRefs.current[0]) {
+        const w = foundationRefs.current[0].clientWidth;
+        if (w > 20) setCardWidth(w);
+      }
+    };
+
+    updateDims();
+    const timer = setTimeout(updateDims, 100);
+    window.addEventListener('resize', updateDims);
+    return () => {
+      clearTimeout(timer);
+      window.removeEventListener('resize', updateDims);
+    };
+  }, []);
 
   // Drag listeners on window for seamless pointer tracking & release anywhere
   useEffect(() => {
@@ -609,6 +635,22 @@ export const GameBoard: React.FC<GameBoardProps> = ({
 
   const isEligibleForAutoComplete = canAutoComplete(state);
 
+  // Dynamic vertical cascade calculation so cards comfortably fill the mobile screen height!
+  const cardHeight = cardWidth * (7 / 5);
+  const availableCascadeHeight = Math.max(240, boardHeight - cardHeight - 35);
+  const maxTotalCards = Math.max(...state.tableau.map((col) => col.length), 7);
+  const maxFaceUpCards = Math.max(
+    ...state.tableau.map((col) => col.filter((c) => c.isFaceUp).length),
+    3
+  );
+
+  const faceDownStep = maxTotalCards > 12 ? 12 : 14;
+  const calculatedFaceUpStep = Math.floor(
+    (availableCascadeHeight - 5 * faceDownStep) / Math.max(maxFaceUpCards, 3)
+  );
+  // Cap between 20px and 38px for beautiful legibility on mobile screens!
+  const faceUpStep = Math.min(38, Math.max(20, calculatedFaceUpStep));
+
   // Compute fanned waste cards for Draw 3 vs Draw 1
   const visibleWasteCards: Card[] =
     state.settings.drawCount === 3
@@ -616,9 +658,12 @@ export const GameBoard: React.FC<GameBoardProps> = ({
       : state.waste.slice(-1);
 
   return (
-    <main className="flex-1 w-full max-w-lg mx-auto flex flex-col justify-between p-2 pb-6 relative select-none touch-none">
+    <main
+      ref={boardRef}
+      className="flex-1 w-full max-w-2xl mx-auto flex flex-col justify-start px-1 sm:px-2 pt-1.5 sm:pt-2.5 pb-1 relative select-none touch-none overflow-hidden min-h-0"
+    >
       {/* Top Row: Stock & Waste on left, 4 Foundations on right */}
-      <div className="grid grid-cols-7 gap-1.5 sm:gap-2 mb-2 items-start">
+      <div className="grid grid-cols-7 gap-1 sm:gap-1.5 mb-2 sm:mb-2.5 items-start shrink-0">
         {/* Col 0: Stock Pile */}
         <div className="col-span-1">
           {state.stock.length > 0 ? (
@@ -747,7 +792,7 @@ export const GameBoard: React.FC<GameBoardProps> = ({
       </div>
 
       {/* Bottom Area: 7 Tableau Columns */}
-      <div className="grid grid-cols-7 gap-1.5 sm:gap-2 flex-1 items-start mt-1">
+      <div className="grid grid-cols-7 gap-1 sm:gap-1.5 flex-1 items-start mt-1 overflow-visible min-h-0">
         {state.tableau.map((column, colIdx) => {
           return (
             <div
@@ -760,7 +805,7 @@ export const GameBoard: React.FC<GameBoardProps> = ({
                   handleEmptyColumnClick(colIdx);
                 }
               }}
-              className="col-span-1 relative min-h-[320px] flex flex-col cursor-pointer"
+              className="col-span-1 relative h-full min-h-[220px] flex flex-col cursor-pointer"
             >
               {/* Empty slot placeholder */}
               {column.length === 0 && (
@@ -793,7 +838,7 @@ export const GameBoard: React.FC<GameBoardProps> = ({
 
                 let topOffset = 0;
                 for (let i = 0; i < cardIdx; i++) {
-                  topOffset += column[i].isFaceUp ? 22 : 12;
+                  topOffset += column[i].isFaceUp ? faceUpStep : faceDownStep;
                 }
 
                 return (
@@ -854,7 +899,7 @@ export const GameBoard: React.FC<GameBoardProps> = ({
               key={`dragged-${c.id}-${idx}`}
               style={{
                 position: 'absolute',
-                top: `${idx * 22}px`,
+                top: `${idx * faceUpStep}px`,
                 left: 0,
                 right: 0,
               }}
@@ -894,7 +939,7 @@ export const GameBoard: React.FC<GameBoardProps> = ({
 
       {/* Floating Auto-Complete Button */}
       {isEligibleForAutoComplete && (
-        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-40 animate-bounce">
+        <div className="fixed bottom-16 sm:bottom-20 left-1/2 -translate-x-1/2 z-40 animate-bounce">
           <button
             onClick={() => {
               sounds.playWinFanfare();

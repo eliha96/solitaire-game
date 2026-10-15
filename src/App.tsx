@@ -9,6 +9,7 @@ import {
 
 import { findHint } from './engine/solver';
 import { HeaderBar } from './components/HeaderBar';
+import { BottomBar } from './components/BottomBar';
 import { GameBoard } from './components/GameBoard';
 import { SettingsModal } from './components/SettingsModal';
 import { WinCanvas } from './components/WinCanvas';
@@ -118,25 +119,29 @@ export function App() {
   };
 
   return (
-    <div className="w-full h-full flex flex-col green-felt overflow-hidden select-none">
-      {/* Top Controls Bar */}
+    <div className="w-full h-full h-[100dvh] flex flex-col green-felt overflow-hidden select-none">
+      {/* Top Status HUD Bar */}
       <HeaderBar
         score={gameState.score}
         moves={gameState.movesCount}
         elapsedSeconds={gameState.elapsedSeconds}
-        undoAvailable={gameState.history.length > 0 && !gameState.isWon}
         settings={gameState.settings}
-        onNewGame={handleNewGame}
-        onUndo={handleUndo}
-        onHint={handleHint}
-        onOpenSettings={() => setShowSettings(true)}
       />
 
-      {/* Main Solitaire Board */}
+      {/* Main Solitaire Board - Dynamically fills height */}
       <GameBoard
         state={gameState}
         onStateChange={setGameState}
         highlightedCardId={highlightedCardId}
+      />
+
+      {/* Bottom Action Bar (Thumb Zone) - Always visible, never cut off */}
+      <BottomBar
+        canUndo={gameState.history.length > 0 && !gameState.isWon}
+        onUndo={handleUndo}
+        onNewGame={handleNewGame}
+        onHint={handleHint}
+        onOpenSettings={() => setShowSettings(true)}
       />
 
       {/* Settings Modal */}
