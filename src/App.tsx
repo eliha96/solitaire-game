@@ -26,10 +26,11 @@ export function App() {
   const [dealTrigger, setDealTrigger] = useState(1); // 1 triggers initial deal on game mount
   const [highlightedCardId, setHighlightedCardId] = useState<string | null>(null);
 
-  // Sync sound settings with audio engine
+  // Sync sound and haptics settings with audio engine
   useEffect(() => {
     sounds.setMuted(!gameState.settings.soundEnabled);
-  }, [gameState.settings.soundEnabled]);
+    sounds.setHapticsEnabled(gameState.settings.hapticsEnabled);
+  }, [gameState.settings.soundEnabled, gameState.settings.hapticsEnabled]);
 
   // Game timer loop & Standard scoring time deduction
   useEffect(() => {

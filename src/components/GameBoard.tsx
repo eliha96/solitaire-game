@@ -397,7 +397,8 @@ export const GameBoard: React.FC<GameBoardProps> = ({
     if (e.button !== 0 && e.pointerType === 'mouse') return;
     if (!card.isFaceUp) return;
 
-    e.preventDefault();
+    // Wake up Web Audio on direct user gesture
+    sounds.unlockAudio();
     e.stopPropagation();
 
     const targetEl = e.currentTarget as HTMLElement;
@@ -428,6 +429,7 @@ export const GameBoard: React.FC<GameBoardProps> = ({
 
   // Stock click handler
   const handleStockClick = () => {
+    sounds.unlockAudio();
     if (isDealing) {
       setDealtCardsCount(28);
       setIsDealing(false);

@@ -2,6 +2,7 @@ import React from 'react';
 import type { GameSettings, CardBackStyle, CardFaceTheme } from '../engine/types';
 import { CardBack } from './CardBack';
 import { X, Volume2, VolumeX, Smartphone, Award, Palette } from 'lucide-react';
+import { sounds } from '../engine/sound';
 
 interface SettingsModalProps {
   settings: GameSettings;
@@ -185,7 +186,17 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
               <input
                 type="checkbox"
                 checked={settings.soundEnabled}
-                onChange={(e) => toggle('soundEnabled', e.target.checked)}
+                onChange={(e) => {
+                  const checked = e.target.checked;
+                  toggle('soundEnabled', checked);
+                  if (checked) {
+                    sounds.unlockAudio();
+                    sounds.setMuted(false);
+                    sounds.playCardFlip();
+                  } else {
+                    sounds.setMuted(true);
+                  }
+                }}
                 className="w-5 h-5 accent-emerald-500 rounded cursor-pointer"
               />
             </div>
@@ -199,7 +210,16 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
               <input
                 type="checkbox"
                 checked={settings.hapticsEnabled}
-                onChange={(e) => toggle('hapticsEnabled', e.target.checked)}
+                onChange={(e) => {
+                  const checked = e.target.checked;
+                  toggle('hapticsEnabled', checked);
+                  if (checked) {
+                    sounds.setHapticsEnabled(true);
+                    sounds.triggerHaptic(40);
+                  } else {
+                    sounds.setHapticsEnabled(false);
+                  }
+                }}
                 className="w-5 h-5 accent-emerald-500 rounded cursor-pointer"
               />
             </div>
