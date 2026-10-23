@@ -25,7 +25,7 @@ export const LeaderboardModal: React.FC<LeaderboardModalProps> = ({
   const medals = ['🥇', '🥈', '🥉', '4', '5'];
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/65 backdrop-blur-xs">
+    <div className="fixed inset-0 z-[60] flex items-center justify-center p-3 sm:p-4 bg-black/75 backdrop-blur-xs">
       <div
         className="w-full max-w-sm sm:max-w-md bg-[#044317] border-2 border-amber-400/70 rounded-2xl shadow-2xl p-4 sm:p-5 text-white animate-in fade-in zoom-in-95 duration-150 max-h-[90vh] flex flex-col"
         dir="rtl"

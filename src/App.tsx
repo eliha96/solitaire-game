@@ -159,12 +159,6 @@ export function App() {
         />
       )}
 
-      {/* Leaderboard Modal */}
-      <LeaderboardModal
-        isOpen={showLeaderboard}
-        onClose={() => setShowLeaderboard(false)}
-      />
-
       {/* Winning Celebration Canvas with Score & Record recognition */}
       {gameState.isWon && (
         <WinCanvas
@@ -178,6 +172,12 @@ export function App() {
           onOpenLeaderboard={() => setShowLeaderboard(true)}
         />
       )}
+
+      {/* Leaderboard Modal (rendered on top of everything including WinCanvas) */}
+      <LeaderboardModal
+        isOpen={showLeaderboard}
+        onClose={() => setShowLeaderboard(false)}
+      />
     </div>
   );
 }
