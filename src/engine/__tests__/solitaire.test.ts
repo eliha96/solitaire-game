@@ -196,7 +196,7 @@ describe('Game Manager & Undo Execution', () => {
       { id: 'h-3', suit: 'hearts', rank: 3, color: 'red', isFaceUp: true },
       fourHearts,
     ];
-    game.tableau[3] = [fiveSpades];
+    game.tableau = [[], [], [], [fiveSpades], [], [], []];
 
     // Check tap-to-move detection from foundation
     const dest = findBestMoveForTappedCard(game, fourHearts, 'foundation');

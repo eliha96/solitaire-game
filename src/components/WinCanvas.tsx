@@ -1,13 +1,20 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import confetti from 'canvas-confetti';
 import type { Card } from '../engine/types';
 import { getRankLabel, getSuitSymbol } from '../engine/rules';
-
 import { sounds } from '../engine/sound';
+import { recordGameResult, type RecordResultOutcome } from '../engine/leaderboard';
+import { Trophy, Crown, RotateCcw, Medal } from 'lucide-react';
 
 interface WinCanvasProps {
   foundations: Card[][];
+  score: number;
+  movesCount: number;
+  elapsedSeconds: number;
+  drawCount: 1 | 3;
+  scoringMode: 'relaxed' | 'standard';
   onRestart: () => void;
+  onOpenLeaderboard: () => void;
 }
 
 interface BouncingCard {
@@ -21,18 +28,69 @@ interface BouncingCard {
   active: boolean;
 }
 
-export const WinCanvas: React.FC<WinCanvasProps> = ({ foundations, onRestart }) => {
+function formatTime(totalSeconds: number): string {
+  const mins = Math.floor(totalSeconds / 60);
+  const secs = totalSeconds % 60;
+  return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+}
+
+export const WinCanvas: React.FC<WinCanvasProps> = ({
+  foundations,
+  score,
+  movesCount,
+  elapsedSeconds,
+  drawCount,
+  scoringMode,
+  onRestart,
+  onOpenLeaderboard,
+}) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const [outcome, setOutcome] = useState<RecordResultOutcome | null>(null);
 
   useEffect(() => {
-    sounds.playWinFanfare();
+    // Record game result and determine record / top 5 status
+    const result = recordGameResult(score, elapsedSeconds, movesCount, drawCount, scoringMode);
+    setOutcome(result);
 
-    // Fire festive confetti
-    confetti({
-      particleCount: 100,
-      spread: 70,
-      origin: { y: 0.6 },
-    });
+    if (result.isNewRecord) {
+      // Grand record fanfare!
+      sounds.playRecordFanfare();
+
+      // Double celebratory fireworks & golden confetti burst!
+      const end = Date.now() + 3.5 * 1000;
+      const colors = ['#f59e0b', '#fbbf24', '#ffffff', '#10b981', '#3b82f6'];
+
+      const frame = () => {
+        confetti({
+          particleCount: 5,
+          angle: 60,
+          spread: 65,
+          origin: { x: 0, y: 0.65 },
+          colors,
+        });
+        confetti({
+          particleCount: 5,
+          angle: 120,
+          spread: 65,
+          origin: { x: 1, y: 0.65 },
+          colors,
+        });
+
+        if (Date.now() < end) {
+          requestAnimationFrame(frame);
+        }
+      };
+      frame();
+    } else {
+      // Regular win fanfare & confetti
+      sounds.playWinFanfare();
+
+      confetti({
+        particleCount: 120,
+        spread: 80,
+        origin: { y: 0.6 },
+      });
+    }
 
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -111,12 +169,11 @@ export const WinCanvas: React.FC<WinCanvasProps> = ({ foundations, onRestart }) 
       if (frameCount % 12 === 0 && currentCardIndex < cardsToBounce.length) {
         const card = cardsToBounce[currentCardIndex];
         activeCards.push({
-
           card,
           x: startX + (Math.random() * 60 - 30),
           y: startY,
           vx: (Math.random() > 0.5 ? 1 : -1) * (2 + Math.random() * 5),
-          vy: - (4 + Math.random() * 6),
+          vy: -(4 + Math.random() * 6),
           width: cardWidth,
           height: cardHeight,
           active: true,
@@ -168,28 +225,88 @@ export const WinCanvas: React.FC<WinCanvasProps> = ({ foundations, onRestart }) 
     return () => {
       cancelAnimationFrame(animationId);
     };
-  }, [foundations]);
+  }, [foundations, score, movesCount, elapsedSeconds, drawCount, scoringMode]);
 
   return (
-    <div className="fixed inset-0 z-50 flex flex-col items-center justify-center pointer-events-auto">
+    <div className="fixed inset-0 z-50 flex flex-col items-center justify-center pointer-events-auto p-4 bg-black/50 backdrop-blur-xs">
       {/* Canvas for the classic Windows bouncing streak */}
-      <canvas ref={canvasRef} className="absolute inset-0 w-full h-full" />
+      <canvas ref={canvasRef} className="absolute inset-0 w-full h-full pointer-events-none" />
 
       {/* Celebration Overlay Card */}
-      <div className="relative z-10 bg-white/95 backdrop-blur-md rounded-2xl shadow-2xl p-6 max-w-xs w-11/12 text-center border-4 border-amber-400 animate-in fade-in zoom-in duration-300">
-        <div className="text-4xl mb-2">🏆</div>
-        <h2 className="text-2xl font-black text-gray-900 mb-1">כל הכבוד!</h2>
-        <p className="text-base text-gray-700 font-medium mb-5">
-          ניצחת את המשחק בהצלחה מדהימה!
+      <div
+        className="relative z-10 bg-[#044317] rounded-2xl shadow-2xl p-5 sm:p-6 max-w-sm w-full text-center border-3 border-amber-400 animate-in fade-in zoom-in duration-300 text-white"
+        dir="rtl"
+      >
+        <div className="w-16 h-16 rounded-full bg-amber-400/20 border-2 border-amber-400 flex items-center justify-center mx-auto mb-3 animate-bounce shadow-lg">
+          <Trophy className="w-8 h-8 text-amber-300" />
+        </div>
+
+        <h2 className="text-2xl sm:text-3xl font-black text-amber-300 mb-1">
+          ניצחון מזהיר!
+        </h2>
+        <p className="text-xs sm:text-sm text-green-200/90 mb-3">
+          סיימת את המשחק בהצלחה מלאה!
         </p>
 
+        {/* Record or Top 5 Badge */}
+        {outcome?.isNewRecord ? (
+          <div className="mb-3 py-2 px-3 bg-gradient-to-r from-amber-500/30 via-yellow-400/40 to-amber-500/30 border-2 border-amber-300 rounded-xl flex items-center justify-center gap-2 shadow-lg animate-pulse">
+            <Crown className="w-5 h-5 text-amber-300 fill-amber-300" />
+            <span className="font-black text-sm sm:text-base text-amber-200">
+              👑 שיא חדש נשבר! כל הכבוד!
+            </span>
+          </div>
+        ) : outcome?.rank ? (
+          <div className="mb-3 py-1.5 px-3 bg-emerald-500/25 border border-emerald-400 rounded-xl flex items-center justify-center gap-1.5 shadow">
+            <Medal className="w-4 h-4 text-amber-300" />
+            <span className="font-bold text-xs sm:text-sm text-emerald-200">
+              🌟 נכנסת ל-5 הגדולים! (מקום {outcome.rank})
+            </span>
+          </div>
+        ) : null}
 
-        <button
-          onClick={onRestart}
-          className="w-full py-3.5 px-6 bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-500 hover:to-green-500 text-white font-black text-lg rounded-xl shadow-lg active:scale-95 transition-transform"
-        >
-          משחק חדש
-        </button>
+        {/* Stats Grid */}
+        <div className="grid grid-cols-2 gap-2 bg-black/35 p-3 rounded-xl border border-white/10 mb-4 text-xs sm:text-sm">
+          <div className="flex flex-col items-center">
+            <span className="text-green-300/80 text-[11px]">ניקוד המשחק</span>
+            <span className="text-xl font-mono font-black text-white">{score}</span>
+          </div>
+          <div className="flex flex-col items-center">
+            <span className="text-green-300/80 text-[11px]">שיא כל הזמנים</span>
+            <span className="text-xl font-mono font-black text-amber-300">
+              {outcome?.allTimeHighScore ?? score}
+            </span>
+          </div>
+          <div className="flex flex-col items-center pt-2 border-t border-white/10">
+            <span className="text-green-300/80 text-[11px]">זמן משחק</span>
+            <span className="font-mono font-bold text-white">
+              {formatTime(elapsedSeconds)}
+            </span>
+          </div>
+          <div className="flex flex-col items-center pt-2 border-t border-white/10">
+            <span className="text-green-300/80 text-[11px]">מהלכים</span>
+            <span className="font-mono font-bold text-white">{movesCount}</span>
+          </div>
+        </div>
+
+        {/* Action Buttons */}
+        <div className="space-y-2">
+          <button
+            onClick={onRestart}
+            className="w-full flex items-center justify-center gap-2 py-3 px-6 bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-500 hover:to-green-500 text-white font-black text-base rounded-xl shadow-lg active:scale-95 transition cursor-pointer"
+          >
+            <RotateCcw className="w-5 h-5" />
+            <span>משחק חדש</span>
+          </button>
+
+          <button
+            onClick={onOpenLeaderboard}
+            className="w-full flex items-center justify-center gap-2 py-2 px-4 bg-white/10 hover:bg-white/15 text-green-100 font-semibold text-xs sm:text-sm rounded-xl border border-white/15 active:scale-95 transition cursor-pointer"
+          >
+            <Trophy className="w-4 h-4 text-amber-300" />
+            <span>הצג לוח שיאים מלא</span>
+          </button>
+        </div>
       </div>
     </div>
   );

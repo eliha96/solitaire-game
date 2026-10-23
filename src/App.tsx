@@ -12,6 +12,7 @@ import { HeaderBar } from './components/HeaderBar';
 import { BottomBar } from './components/BottomBar';
 import { GameBoard } from './components/GameBoard';
 import { SettingsModal } from './components/SettingsModal';
+import { LeaderboardModal } from './components/LeaderboardModal';
 import { WinCanvas } from './components/WinCanvas';
 import { sounds } from './engine/sound';
 
@@ -21,6 +22,8 @@ export function App() {
   });
 
   const [showSettings, setShowSettings] = useState(false);
+  const [showLeaderboard, setShowLeaderboard] = useState(false);
+  const [dealTrigger, setDealTrigger] = useState(1); // 1 triggers initial deal on game mount
   const [highlightedCardId, setHighlightedCardId] = useState<string | null>(null);
 
   // Sync sound settings with audio engine
@@ -64,6 +67,7 @@ export function App() {
     const newGame = createNewGame(gameState.settings, true);
     setGameState(newGame);
     setHighlightedCardId(null);
+    setDealTrigger((prev) => prev + 1);
   }, [gameState.settings]);
 
   // Handler for Undo
@@ -128,11 +132,12 @@ export function App() {
         settings={gameState.settings}
       />
 
-      {/* Main Solitaire Board - Dynamically fills height */}
+      {/* Main Solitaire Board - Dynamically fills height with dealing animation */}
       <GameBoard
         state={gameState}
         onStateChange={setGameState}
         highlightedCardId={highlightedCardId}
+        dealTrigger={dealTrigger}
       />
 
       {/* Bottom Action Bar (Thumb Zone) - Always visible, never cut off */}
@@ -141,6 +146,7 @@ export function App() {
         onUndo={handleUndo}
         onNewGame={handleNewGame}
         onHint={handleHint}
+        onOpenLeaderboard={() => setShowLeaderboard(true)}
         onOpenSettings={() => setShowSettings(true)}
       />
 
@@ -153,11 +159,23 @@ export function App() {
         />
       )}
 
-      {/* Winning Celebration Canvas */}
+      {/* Leaderboard Modal */}
+      <LeaderboardModal
+        isOpen={showLeaderboard}
+        onClose={() => setShowLeaderboard(false)}
+      />
+
+      {/* Winning Celebration Canvas with Score & Record recognition */}
       {gameState.isWon && (
         <WinCanvas
           foundations={gameState.foundations}
+          score={gameState.score}
+          movesCount={gameState.movesCount}
+          elapsedSeconds={gameState.elapsedSeconds}
+          drawCount={gameState.settings.drawCount}
+          scoringMode={gameState.settings.scoringMode}
           onRestart={handleNewGame}
+          onOpenLeaderboard={() => setShowLeaderboard(true)}
         />
       )}
     </div>

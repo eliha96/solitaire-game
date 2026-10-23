@@ -124,6 +124,86 @@ class SoundEngine {
   }
 
   /**
+   * Grand Record Fanfare: extra triumphant harmonic fanfare when breaking all-time high score!
+   */
+  public playRecordFanfare() {
+    const ctx = this.getContext();
+    if (!ctx) return;
+
+    try {
+      // Triumphant chords progression
+      const chords = [
+        { time: 0.00, notes: [261.63, 329.63, 392.0] }, // C major
+        { time: 0.22, notes: [349.23, 440.00, 523.25] }, // F major
+        { time: 0.44, notes: [392.00, 493.88, 587.33] }, // G major
+        { time: 0.70, notes: [523.25, 659.25, 783.99, 1046.5] }, // High C major victory hold!
+      ];
+
+      chords.forEach(({ time: startOffset, notes }) => {
+        notes.forEach((freq) => {
+          const time = ctx.currentTime + startOffset;
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(freq, time);
+
+          const duration = startOffset >= 0.7 ? 0.8 : 0.28;
+          gain.gain.setValueAtTime(0, time);
+          gain.gain.linearRampToValueAtTime(0.25, time + 0.02);
+          gain.gain.exponentialRampToValueAtTime(0.001, time + duration);
+
+          osc.connect(gain);
+          gain.connect(ctx.destination);
+
+          osc.start(time);
+          osc.stop(time + duration + 0.05);
+        });
+      });
+    } catch (e) {
+      console.warn('Audio play error', e);
+    }
+  }
+
+  /**
+   * Crisp, rapid card dealing sound for snappy deal animation
+   */
+  public playCardDeal() {
+    const ctx = this.getContext();
+    if (!ctx) return;
+
+    try {
+      const bufferSize = Math.floor(ctx.sampleRate * 0.035); // 35ms quick burst
+      const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+      const data = buffer.getChannelData(0);
+      for (let i = 0; i < bufferSize; i++) {
+        data[i] = Math.random() * 2 - 1;
+      }
+
+      const noise = ctx.createBufferSource();
+      noise.buffer = buffer;
+
+      const filter = ctx.createBiquadFilter();
+      filter.type = 'bandpass';
+      filter.frequency.setValueAtTime(1600, ctx.currentTime);
+      filter.frequency.exponentialRampToValueAtTime(800, ctx.currentTime + 0.035);
+      filter.Q.value = 2.2;
+
+      const gain = ctx.createGain();
+      gain.gain.setValueAtTime(0.22, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.035);
+
+      noise.connect(filter);
+      filter.connect(gain);
+      gain.connect(ctx.destination);
+
+      noise.start();
+    } catch (e) {
+      console.warn('Audio play error', e);
+    }
+  }
+
+  /**
    * Gentle mobile haptic feedback
    */
   public triggerHaptic(duration = 15) {

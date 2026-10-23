@@ -14,6 +14,7 @@ interface GameBoardProps {
   state: GameState;
   onStateChange: (newState: GameState) => void;
   highlightedCardId: string | null;
+  dealTrigger?: number;
 }
 
 interface DragState {
@@ -55,7 +56,50 @@ export const GameBoard: React.FC<GameBoardProps> = ({
   state,
   onStateChange,
   highlightedCardId,
+  dealTrigger,
 }) => {
+  const [dealtCardsCount, setDealtCardsCount] = useState<number>(28);
+  const [isDealing, setIsDealing] = useState<boolean>(false);
+
+  // Authentically sequence the 28 tableau cards across the 7 columns
+  const getDealOrderIndex = (colIdx: number, cardIdx: number): number => {
+    let order = 0;
+    for (let pass = 0; pass < cardIdx; pass++) {
+      order += 7 - pass;
+    }
+    return order + (colIdx - cardIdx);
+  };
+
+  // Trigger rapid dealing animation whenever dealTrigger changes
+  useEffect(() => {
+    if (dealTrigger === undefined) return;
+
+    setDealtCardsCount(0);
+    setIsDealing(true);
+
+    let count = 0;
+    const interval = setInterval(() => {
+      count++;
+      setDealtCardsCount(count);
+
+      // Play crisp deal sound
+      sounds.playCardDeal();
+
+      // Flip sound when top face-up card lands on its column
+      // Positions are: (0,0)=0, (1,1)=7, (2,2)=13, (3,3)=18, (4,4)=22, (5,5)=25, (6,6)=27
+      if ([0, 7, 13, 18, 22, 25, 27].includes(count - 1)) {
+        sounds.playCardFlip();
+      }
+
+      if (count >= 28) {
+        clearInterval(interval);
+        setIsDealing(false);
+      }
+    }, 28); // 28ms * 28 cards = ~784ms total fast snappy deal
+
+    return () => clearInterval(interval);
+  }, [dealTrigger]);
+
   const [selectedLocation, setSelectedLocation] = useState<{
     pile: 'waste' | 'tableau' | 'foundation';
     colIndex?: number;
@@ -342,6 +386,13 @@ export const GameBoard: React.FC<GameBoardProps> = ({
     source: DragState['source'],
     card: Card
   ) => {
+    // If dealing animation is running, cancel/skip it
+    if (isDealing) {
+      setDealtCardsCount(28);
+      setIsDealing(false);
+      return;
+    }
+
     // Only primary mouse button or touch
     if (e.button !== 0 && e.pointerType === 'mouse') return;
     if (!card.isFaceUp) return;
@@ -377,6 +428,12 @@ export const GameBoard: React.FC<GameBoardProps> = ({
 
   // Stock click handler
   const handleStockClick = () => {
+    if (isDealing) {
+      setDealtCardsCount(28);
+      setIsDealing(false);
+      return;
+    }
+
     sounds.playCardFlip();
     sounds.triggerHaptic(15);
     const next = drawCards(state);
@@ -660,6 +717,12 @@ export const GameBoard: React.FC<GameBoardProps> = ({
   return (
     <main
       ref={boardRef}
+      onClick={() => {
+        if (isDealing) {
+          setDealtCardsCount(28);
+          setIsDealing(false);
+        }
+      }}
       className="flex-1 w-full max-w-2xl mx-auto flex flex-col justify-start px-1 sm:px-2 pt-1.5 sm:pt-2.5 pb-1 relative select-none touch-none overflow-hidden min-h-0"
     >
       {/* Top Row: Stock & Waste on left, 4 Foundations on right */}
@@ -816,6 +879,12 @@ export const GameBoard: React.FC<GameBoardProps> = ({
 
               {/* Cards in column stacked with offset */}
               {column.map((card, cardIdx) => {
+                const dealOrder = getDealOrderIndex(colIdx, cardIdx);
+                if (isDealing && dealOrder >= dealtCardsCount) {
+                  return null;
+                }
+                const isJustDealt = isDealing && dealOrder === dealtCardsCount - 1;
+
                 const isSelected =
                   selectedLocation?.pile === 'tableau' &&
                   selectedLocation.colIndex === colIdx &&
@@ -844,6 +913,7 @@ export const GameBoard: React.FC<GameBoardProps> = ({
                 return (
                   <div
                     key={card.id}
+                    className={isJustDealt ? 'animate-in fade-in zoom-in-95 duration-75' : ''}
                     style={{
                       position: 'absolute',
                       top: `${topOffset}px`,
