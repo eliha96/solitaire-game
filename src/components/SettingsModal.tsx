@@ -21,9 +21,57 @@ const CARD_BACK_OPTIONS: { id: CardBackStyle; label: string }[] = [
   { id: 'classic-red', label: 'אדום קלאסי' },
 ];
 
-const CARD_FACE_OPTIONS: { id: CardFaceTheme; label: string; desc: string; badge?: string }[] = [
-  { id: 'windows95', label: 'Windows 95', desc: 'הפיקסל-ארט המקורי מ-cards.dll', badge: 'ברירת מחדל' },
-  { id: 'standard', label: 'קלאסי תקני', desc: 'איורים וקטוריים מלאים (Bicycle)' },
+const CARD_FACE_OPTIONS: {
+  id: CardFaceTheme;
+  label: string;
+  desc: string;
+  badge?: string;
+  previewRank: string;
+  previewSuit: string;
+  previewColor: string;
+}[] = [
+  {
+    id: 'large-print',
+    label: 'מספרים ענקיים',
+    desc: 'ספרות ענק וסמל מודגש יחיד במרכז לקריאות מרבית',
+    badge: 'קריאות מרבית ⭐',
+    previewRank: 'A',
+    previewSuit: '♠',
+    previewColor: '#0a0a0a',
+  },
+  {
+    id: 'four-color',
+    label: '4 צבעים נגיש',
+    desc: 'ספרות ענק וצבע מובחן לכל צורה (♥ אדום, ♠ שחור, ♦ כחול, ♣ ירוק)',
+    badge: 'נגישות גבוהה',
+    previewRank: 'K',
+    previewSuit: '♦',
+    previewColor: '#2563eb',
+  },
+  {
+    id: 'modern-bold',
+    label: 'מודרני בולט',
+    desc: 'טיפוגרפיה גדולה ומודרנית בעיצוב חד וברור',
+    previewRank: 'Q',
+    previewSuit: '♥',
+    previewColor: '#e11d48',
+  },
+  {
+    id: 'windows95',
+    label: 'Windows 95',
+    desc: 'הפיקסל-ארט הרטרו המקורי מ-cards.dll',
+    previewRank: '10',
+    previewSuit: '♣',
+    previewColor: '#1a1a1a',
+  },
+  {
+    id: 'standard',
+    label: 'קלאסי תקני (Bicycle)',
+    desc: 'איורים וקטוריים מלאים עם ריבוי סמלים',
+    previewRank: 'J',
+    previewSuit: '♠',
+    previewColor: '#1a1a1a',
+  },
 ];
 
 export const SettingsModal: React.FC<SettingsModalProps> = ({
@@ -37,7 +85,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-      <div className="bg-[#1b4332] border-2 border-emerald-500/50 rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden text-white flex flex-col max-h-[90vh]">
+      <div className="bg-[#1b4332] border-2 border-emerald-500/50 rounded-2xl shadow-2xl w-full max-w-sm sm:max-w-md overflow-hidden text-white flex flex-col max-h-[90vh]">
         {/* Header */}
         <div className="flex items-center justify-between px-5 py-4 border-b border-emerald-600/40 bg-[#0f281e]">
           <h2 className="text-xl font-bold">הגדרות המשחק</h2>
@@ -50,33 +98,45 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
         </div>
 
         {/* Content */}
-        <div className="p-5 overflow-y-auto space-y-5">
+        <div className="p-4 sm:p-5 overflow-y-auto space-y-5">
           {/* Card Face Theme Selection */}
           <div>
             <label className="flex items-center justify-between text-sm font-semibold text-emerald-200 mb-2">
               <span className="flex items-center gap-1.5">
                 <Palette size={16} className="text-amber-400" />
-                חפיסת קלפים
+                עיצוב חבילת הקלפים (ערכות נושא)
               </span>
             </label>
-            <div className="grid grid-cols-2 gap-2">
+            <div className="space-y-2">
               {CARD_FACE_OPTIONS.map((opt) => (
                 <button
                   key={opt.id}
                   onClick={() => toggle('cardFaceTheme', opt.id)}
-                  className={`relative flex flex-col items-center justify-center p-3 rounded-xl border text-center transition-all ${
+                  className={`relative w-full flex items-center p-2.5 rounded-xl border text-right transition-all cursor-pointer ${
                     settings.cardFaceTheme === opt.id
-                      ? 'border-amber-400 bg-emerald-700 text-white shadow-md font-bold scale-102'
-                      : 'border-emerald-800 bg-emerald-950/40 text-emerald-300 opacity-75 hover:opacity-100'
+                      ? 'border-amber-400 bg-emerald-700/90 text-white shadow-md font-bold scale-[1.01]'
+                      : 'border-emerald-800 bg-emerald-950/40 text-emerald-200 opacity-80 hover:opacity-100 hover:bg-emerald-900/40'
                   }`}
                 >
                   {opt.badge && (
-                    <span className="absolute -top-1.5 -right-1 bg-amber-500 text-gray-950 text-[9px] font-black px-1.5 py-0.5 rounded-full shadow">
+                    <span className="absolute -top-1.5 left-3 bg-amber-500 text-gray-950 text-[10px] font-black px-2 py-0.5 rounded-full shadow">
                       {opt.badge}
                     </span>
                   )}
-                  <span className="text-sm font-bold leading-tight">{opt.label}</span>
-                  <span className="text-[11px] opacity-80 mt-1 line-clamp-2">{opt.desc}</span>
+                  <div className="flex items-center gap-3 w-full">
+                    {/* Mini preview card */}
+                    <div
+                      className="w-8 h-11 bg-white rounded shadow-sm border border-gray-300 flex flex-col items-center justify-between p-0.5 shrink-0 select-none"
+                      style={{ color: opt.previewColor }}
+                    >
+                      <span className="font-black text-[11px] leading-none">{opt.previewRank}</span>
+                      <span className="text-[12px] leading-none">{opt.previewSuit}</span>
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="text-sm font-bold leading-tight">{opt.label}</div>
+                      <div className="text-[11px] opacity-80 mt-0.5 leading-snug">{opt.desc}</div>
+                    </div>
+                  </div>
                 </button>
               ))}
             </div>

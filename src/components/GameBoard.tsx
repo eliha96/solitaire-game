@@ -707,8 +707,15 @@ export const GameBoard: React.FC<GameBoardProps> = ({
   const calculatedFaceUpStep = Math.floor(
     (availableCascadeHeight - 5 * faceDownStep) / Math.max(maxFaceUpCards, 3)
   );
-  // Cap between 20px and 38px for beautiful legibility on mobile screens!
-  const faceUpStep = Math.min(38, Math.max(20, calculatedFaceUpStep));
+  const isAccessibleTheme =
+    state.settings.cardFaceTheme === 'large-print' ||
+    state.settings.cardFaceTheme === 'modern-bold' ||
+    state.settings.cardFaceTheme === 'four-color';
+
+  const minStep = isAccessibleTheme ? 24 : 20;
+  const maxStep = isAccessibleTheme ? 42 : 38;
+  // Cap between minStep and maxStep for beautiful legibility on mobile screens!
+  const faceUpStep = Math.min(maxStep, Math.max(minStep, calculatedFaceUpStep));
 
   // Compute fanned waste cards for Draw 3 vs Draw 1
   const visibleWasteCards: Card[] =

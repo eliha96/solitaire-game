@@ -20,7 +20,12 @@ export type CardBackStyle =
   | 'shells'
   | 'classic-red';
 
-export type CardFaceTheme = 'windows95' | 'standard';
+export type CardFaceTheme =
+  | 'large-print'
+  | 'modern-bold'
+  | 'four-color'
+  | 'windows95'
+  | 'standard';
 
 
 export type CardLocation =
